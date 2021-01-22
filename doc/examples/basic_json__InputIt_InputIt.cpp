@@ -1,6 +1,7 @@
-#include <json.hpp>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-using namespace nlohmann;
+using json = nlohmann::json;
 
 int main()
 {
@@ -18,4 +19,14 @@ int main()
     std::cout << j_array_range << '\n';
     std::cout << j_number_range << '\n';
     std::cout << j_object_range << '\n';
+
+    // example for an exception
+    try
+    {
+        json j_invalid(j_number.begin() + 1, j_number.end());
+    }
+    catch (json::invalid_iterator& e)
+    {
+        std::cout << e.what() << '\n';
+    }
 }

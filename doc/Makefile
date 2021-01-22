@@ -1,9 +1,7 @@
-SRCDIR = ../src
+SRCDIR = ../single_include
+SED:=$(shell command -v gsed || which sed)
 
 all: doxygen
-
-clean:
-	rm -fr me.nlohmann.json.docset html
 
 
 ##########################################################################
@@ -30,8 +28,8 @@ EXAMPLES = $(wildcard examples/*.cpp)
 %.link: %.cpp
 	rm -fr tmp
 	mkdir tmp
-	cp $(SRCDIR)/json.hpp tmp
-	scripts/send_to_wandbox.py tmp $< > $@.tmp
+	cp -r $(SRCDIR)/nlohmann tmp
+	python2 scripts/send_to_wandbox.py tmp $< > $@.tmp
 	/bin/echo -n "<a target=\"_blank\" href=\"`cat $@.tmp`\"><b>online</b></a>" > $@
 	rm -fr tmp $@.tmp
 
@@ -44,6 +42,10 @@ create_links: $(EXAMPLES:.cpp=.link)
 check_output: $(EXAMPLES:.cpp=.test)
 
 
+clean:
+	rm -fr me.nlohmann.json.docset html xml $(EXAMPLES:.cpp=)
+
+
 ##########################################################################
 # Doxygen HTML documentation
 ##########################################################################
@@ -51,11 +53,19 @@ check_output: $(EXAMPLES:.cpp=.test)
 # create Doxygen documentation
 doxygen: create_output create_links
 	doxygen
-	gsed -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberFloatType, AllocatorType &gt;@@g' html/*.html
-	gsed -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberFloatType,&#160;AllocatorType&#160;&gt;@@g' html/*.html
+	$(SED) -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberFloatType, AllocatorType, JSONSerializer &gt;@@g' html/*.html
+	$(SED) -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberFloatType,&#160;AllocatorType&#160;JSONSerializer&#160;&gt;@@g' html/*.html
+	$(SED) -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer &gt;@@g' html/*.html
+	$(SED) -i 's@< ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer >@@g' html/*.html
+	$(SED) -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberUnsignedType,&#160;NumberFloatType,&#160;AllocatorType&#160;JSONSerializer&#160;&gt;@@g' html/*.html
+	$(SED) -i 's@template&lt;template&lt; typename U, typename V, typename... Args &gt; class ObjectType = std::map, template&lt; typename U, typename... Args &gt; class ArrayType = std::vector, class StringType = std::string, class BooleanType = bool, class NumberIntegerType = std::int64_t, class NumberUnsignedType = std::uint64_t, class NumberFloatType = double, template&lt; typename U &gt; class AllocatorType = std::allocator, template&lt; typename T, typename SFINAE=void &gt; class JSONSerializer = adl_serializer&gt;@@g' html/*.html
+	$(SED) -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer &gt;@@g' html/*.html
+	$(SED) -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberUnsignedType,&#160;NumberFloatType,&#160;AllocatorType,&#160;JSONSerializer&#160;&gt;@@g' html/*.html
+	$(SED) -i 's@JSON_HEDLEY_RETURNS_NON_NULL@@g' html/*.html
+	$(SED) -i 's@JSON_HEDLEY_WARN_UNUSED_RESULT@@g' html/*.html
 
 upload: clean doxygen check_output
-	cd html ; ../scripts/git-update-ghpages nlohmann/json
+	scripts/git-update-ghpages nlohmann/json html
 	rm -fr html
 	open http://nlohmann.github.io/json/
 
@@ -67,14 +77,14 @@ upload: clean doxygen check_output
 # create docset for Dash
 docset: create_output
 	cp Doxyfile Doxyfile_docset
-	gsed -i 's/DISABLE_INDEX          = NO/DISABLE_INDEX          = YES/' Doxyfile_docset
-	gsed -i 's/SEARCHENGINE           = YES/SEARCHENGINE           = NO/' Doxyfile_docset
-	gsed -i 's@HTML_EXTRA_STYLESHEET  = css/mylayout.css@HTML_EXTRA_STYLESHEET  = css/mylayout_docset.css@' Doxyfile_docset
+	$(SED) -i 's/DISABLE_INDEX          = NO/DISABLE_INDEX          = YES/' Doxyfile_docset
+	$(SED) -i 's/SEARCHENGINE           = YES/SEARCHENGINE           = NO/' Doxyfile_docset
+	$(SED) -i 's@HTML_EXTRA_STYLESHEET  = css/mylayout.css@HTML_EXTRA_STYLESHEET  = css/mylayout_docset.css@' Doxyfile_docset
 	rm -fr html *.docset
 	doxygen Doxyfile_docset
-	gsed -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberFloatType, AllocatorType &gt;@@g' html/*.html
-	gsed -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberFloatType,&#160;AllocatorType&#160;&gt;@@g' html/*.html
+	$(SED) -i 's@&lt; ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberFloatType, AllocatorType &gt;@@g' html/*.html
+	$(SED) -i 's@&lt;&#160;ObjectType,&#160;ArrayType,&#160;StringType,&#160;BooleanType,&#160;NumberIntegerType,&#160;NumberFloatType,&#160;AllocatorType&#160;&gt;@@g' html/*.html
 	make -C html
 	mv html/*.docset .
-	gsed -i 's@<string>doxygen</string>@<string>json</string>@' me.nlohmann.json.docset/Contents/Info.plist
+	$(SED) -i 's@<string>doxygen</string>@<string>json</string>@' me.nlohmann.json.docset/Contents/Info.plist
 	rm -fr Doxyfile_docset html

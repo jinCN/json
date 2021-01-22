@@ -1,6 +1,7 @@
-#include <json.hpp>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-using namespace nlohmann;
+using json = nlohmann::json;
 
 int main()
 {
@@ -12,7 +13,7 @@ int main()
     json j_array = {1, 2, 4, 8, 16};
     json j_string = "Hello, world";
 
-    // call erase
+    // call erase()
     j_boolean.erase(j_boolean.begin(), j_boolean.end());
     j_number_integer.erase(j_number_integer.begin(), j_number_integer.end());
     j_number_float.erase(j_number_float.begin(), j_number_float.end());

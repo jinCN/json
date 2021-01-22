@@ -1,12 +1,16 @@
-#include <json.hpp>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-using namespace nlohmann;
+using json = nlohmann::json;
 
 int main()
 {
-    // create a JSON null value
-    json j(nullptr);
+    // implicitly create a JSON null value
+    json j1;
+
+    // explicitly create a JSON null value
+    json j2(nullptr);
 
     // serialize the JSON null value
-    std::cout << j << '\n';
+    std::cout << j1 << '\n' << j2 << '\n';
 }

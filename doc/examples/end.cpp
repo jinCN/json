@@ -1,13 +1,14 @@
-#include <json.hpp>
+#include <iostream>
+#include <nlohmann/json.hpp>
 
-using namespace nlohmann;
+using json = nlohmann::json;
 
 int main()
 {
     // create an array value
     json array = {1, 2, 3, 4, 5};
 
-    // get am iterator to one past the last element
+    // get an iterator to one past the last element
     json::iterator it = array.end();
 
     // decrement the iterator to point to the last element
